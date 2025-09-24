@@ -1,0 +1,20 @@
+# Kaggle (Not in use)
+kaggle.json
+.kaggle/
+*.key
+# venv
+.venv/
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+# Env
+.env
+# Datos locales
+/data/*
+!/data/README.md
+# Reports exportados
+/reports/*.html
+/reports/*.pdf
+# VSCode
+.vscode/
