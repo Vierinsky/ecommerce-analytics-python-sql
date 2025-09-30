@@ -18,3 +18,5 @@ __pycache__/
 /reports/*.pdf
 # VSCode
 .vscode/
+# Plan con fases y pasos a seguir para proyecto
+plan.md
