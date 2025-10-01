@@ -1,5 +1,5 @@
 Purpose:
-    DDL, DML, Quality checks.
+    DDL (Data Definition Language), DML (Data Manipulation Language), Quality checks.
 
 TODO:
     * Define Schemas
