@@ -37,3 +37,22 @@ Every table should have the following operative columns: _ingested_at TIMESTAMP,
 
 Recommended load order: customers → orders → order_items → products → sellers → reviews → external.
 
+## Idempotence During Staging
+
+- Load data as **append-only** (Every data load adds new rows to `staging.`)
+
+- Deduplication (dedup) by natural key and `_row_md5` (Hash of all, or the main, columns of the row.)
+
+- Saving a manifest (file name + expected rows + checksum)
+
+# Transformations When Loading to core.
+
+## General Rules
+
+- Type Cast: Dates to `DATE` datatype.
+- Normalization:
+- Missing values (Null) and Ranges:
+- Valid Dates:
+- Valid Order Status: Only `approved` order state.
+- Valid City: Only `sao paulo` city.
+
