@@ -50,9 +50,15 @@ Recommended load order: customers → orders → order_items → products → se
 ## General Rules
 
 - Type Cast: Dates to `DATE` datatype.
-- Normalization:
-- Missing values (Null) and Ranges:
-- Valid Dates:
+- Normalization: 
+    * Strings: `TRIM`/`LOWER` (e.g.,“são paulo” or “São Paulo” -> “sao paulo”)
+- Missing values (Null) and Ranges: (TODO)
+- Valid Dates: dd/mm/yyyy format.
 - Valid Order Status: Only `approved` order state.
 - Valid City: Only `sao paulo` city.
 
+# Automatic checks (Always after every load)
+
+## Count and Duplicates
+
+## 
