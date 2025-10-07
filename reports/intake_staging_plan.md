@@ -160,12 +160,28 @@ Recommended load order: customers → orders → order_items → products → se
 
 # Fail Rules
 
-- Duplicados en la llave natural del grano → ABORT.
+- Duplicates in the natural key of the grain -> ABORT
 
-- FK faltantes (lookup a dims) → ABORT.
+- Missing FKs -> ABORT
 
-- Fechas invertidas (delivered < approved) → QUARANTINE si ≤ X filas, ABORT si > X.
+- Inverted dates (order_delivered_customer_date < order_approved_at) -> QUARANTINE if ≤ x% rows, ABORT if > X% (x% is a percentage that needs to be defined).
 
-- % nulos en fechas clave > umbral (define, ej. >0.5%) → ABORT.
+- % of Null values in key dates > x% (x% is a percentage that needs to be defined). -> ABORT
 
-- Rangos negativos en price/freight → ABORT.
+- Negative numbers in price/freight → ABORT.
+
+TODO: Write this thresholds (x%) in a table (Columns: check, threshold, action).
+
+# Analytics (KPI's views)
+
+- analytics.vw_revenue_quarter_sp → Revenue per quarter for the city of sao paulo (delivered orders only).
+
+- analytics.vw_reviews_share_quarter_sp → Review's share ≥4★ per quarter in the city of sao paulo.
+
+- analytics.vw_leadtime_p90_quarter_sp → P90 of lead time per quarter in sao paulo.
+
+- analytics.vw_on_time_rate_quarter_sp → on-time rate per quarter in sao paulo.
+
+- analytics.vw_topcat_share_quarter_sp → share of C* (Top category in Q_{t−4}) per quarter in sao paulo.
+
+(C* gets defined in analytics with a  CTE in the future).
