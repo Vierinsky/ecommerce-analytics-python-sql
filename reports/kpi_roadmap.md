@@ -133,7 +133,13 @@
 # Business Questions
 
 - ¿Does the weather or Holidays affect sold volume?
-    * Source: fact + dim_external
+    - Source: fact + dim_external
     - Level: Day/Week
     - Base metric: revenue / count of orders
-    - : Weather (Rain vs No_Rain), is_holiday.
+    - Segments: Weather (Rain vs No_Rain), is_holiday.
+
+- ¿Which segment concentrates 80% of the revenue?
+    - Source: fact + customer/product
+    - Level: Quarter
+    - Base metric: Revenue
+    - Segments: Cumulative curve (Pareto)
