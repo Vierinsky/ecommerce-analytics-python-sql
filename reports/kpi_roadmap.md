@@ -93,36 +93,47 @@
 
 - Output: quarter, ontime_%, base_%, Δ pp, cobertura (n con estimated)
 
-- Caveats: 
+- Caveats: Document exclusion of possible null values.
 
 ## Pivot Table (to check in Python):
 
-- Rows: 
+- Rows: quarter
 
-- Columns:
+- Columns: (optional) Product category
 
-- Values:
+- Values: On-time %, Δ pp, N (denominator)
 
-# 5) 
+# 5) Share of Top Sold Product Category (Froze image from quarter Q_{t−4}) — pp
 
-- Source:
+- Source: core.fact_events (price) + product + calendar + customer
 
-- Scope: 
+- Scope: sao paulo
 
-- Level: 
+- Level: Quarter
 
 - Base metric: 
+    
+    * Define C\* = Top sold category by share of revenue in Q_{t−4}
+    * share_{C^*}(Q) = (revenue of C\* in Q) / (total revenue in Q) × 100
 
-- KPI calculation: 
+- KPI calculation: share_{C^*}(Q_t) − share_{C^*}(Q_{t−4})
 
-- Output: 
+- Output: quarter, share_C^*_%, base_%, Δ pp, C^* (name)
 
-- Caveats: 
+- Caveats: freeze C^* in Q_{t−4}; Watch out for low volumes during the quarter
 
 ## Pivot Table (to check in Python):
 
-- Rows: 
+- Rows: Quarter
 
-- Columns:
+- Columns: —
 
-- Values:
+- Values: % share C^*, Δ pp, total revenue (for context)
+
+# Business Questions
+
+- ¿Does the weather or Holidays affect sold volume?
+    * Source: fact + dim_external
+    - Level: Day/Week
+    - Base metric: revenue / count of orders
+    - : Weather (Rain vs No_Rain), is_holiday.
