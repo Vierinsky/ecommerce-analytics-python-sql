@@ -88,7 +88,7 @@ Ship only if primary passes and guardrails don’t worsen.
 
 # 8) Variance reduction (optional)
 
-- CUPED: Yes/No. If Yes, covariate = customer’s pre-period revenue/order
+- CUPED (Covariate-Adjusted): Yes/No. If Yes, covariate = customer’s pre-period revenue/order
 
 - Stratification: Yes/No. If Yes, strata = weekday or category
 
