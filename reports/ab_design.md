@@ -1,38 +1,18 @@
-# Definition of Done — Fase 6
-
-Tu reports/ab_design.md debe tener:
-
-    - H0/H1 claras y métrica principal (unidad, ventana).
-
-    - Unidad de aleatorización y método de asignación (hash).
-
-    - Criterios de elegibilidad y exclusión.
-
-    - Prueba estadística elegida + IC + tamaño de efecto.
-
-    - MDE/α/potencia con placeholders (completarás tras un pre-EDA).
-
-    - Guardrails, sanity checks, variance reduction (si aplica).
-
-    - Ventana fija y reglas de stopping.
-
-    - Plan de reporte.
-
 # 1) Objective and Context
 
 “Adding a free-shipping threshold banner for São Paulo to raise average order revenue this quarter.”
 
 # 2) Primary Metric
 
-Name: Average order revenue (GMV without freight)
+Name: Average order revenue (GMV without freight), currency = BRL
 
-Definition: sum of price per order_id (across items), then mean across orders in the quarter
+Definition: sum of `price` per order_id (across items), then mean across orders in the quarter
 
-Window: by quarter, assigned by delivered_date
+Window: by quarter, assigned by `order_delivered_customer_date`
 
-Scope: sao paulo city
+Scope: sao paulo (city)
 
-Primary = mean revenue/order (BRL(Or USD), freight excluded), Q-level, sao paulo = (city).
+Primary = mean revenue/order (currency = BRL, freight excluded), quarter-level, sao paulo city.
 
 # 3) Randomization Unit and assignment
 
@@ -46,15 +26,15 @@ Unit = customer; deterministic hashing 50/50.
 
 # 4) Eligibility and Exposure Rules
 
-- Include: orders with order_status = delivered, sao paulo, within [start_date, end_date]
+- Include: orders with order_status = delivered, sao paulo (city), within [start_date, end_date]
 
 - Exclude: invalid dates (delivered < approved), missing delivered_date
 
-- Exposure rule: customer in B is considered exposed (in this offline project we’ll simulate exposure via hashing)
+- Exposure rule: customer hashed to B is considered exposed (in this offline project we’ll simulate exposure via hashing)
 
 # 5) Hypotheses
 
-- Math: H0:μB−μA=0 vs H1:μB−μA>0
+- Math: H0:μB−μA = 0 vs H1:μB−μA > 0
 
 - Plain English: “The banner increases average order revenue.”
 
@@ -64,7 +44,7 @@ Unit = customer; deterministic hashing 50/50.
 
 - Power: 0.80
 
-- Baseline (TODO fill later): average revenue/order = ___ BRL (Or USD)
+- Baseline (TODO: fill after pre-analysis): average revenue/order = ___ BRL
 
 - MDE (target uplift): +__% relative (TODO: Let's pick something realistic: 1–3% is common for banners)
 
@@ -105,20 +85,19 @@ Compare A vs B on pre-period metrics (before start_date):
 
 - Design: fixed horizon
 
-- Stop when: sample size per group (from power calc) is reached
+- Stop when: N per group (from power analysis using the pre-period baseline/variance) is reached.
 
-- Interim looks: none (no alpha-spending in v1)
+- Interim looks: None (no alpha-spending in v1)
 
 # 11) Data hygiene
 
 - Unique (order_id, order_item_id) in fact; aggregate to order for the metric
 
-- Exclude delivered < approved
+- Exclude rows with `order_delivered_customer_date < order_approved_at`
 
-- Revenue excludes freight (price only)
+- Revenue excludes freight (`price` only)
 
-- Sensitivity: winsorize at P99.9 for robustness check only, not for the primary result
-
+- Sensitivity: winsorize revenue at P99.9 for robustness check only; Primary result uses raw data.
 
 # 12) Reporting outline
 
