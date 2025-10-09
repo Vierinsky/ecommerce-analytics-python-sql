@@ -1,3 +1,5 @@
+TODO: Set START_DATE / END_DATE and lock MDE = +2% before power analysis & stopping rules.
+
 # 1) Objective and Context
 
 “Adding a free-shipping threshold banner for São Paulo to raise average order revenue this quarter.”
@@ -78,8 +80,8 @@ Ship only if primary passes and guardrails don’t worsen.
 
 Compare A vs B on pre-period metrics (before start_date):
 
-    - #orders/customer, revenue/order, category mix, SP share
-    → If imbalanced, note it and keep the plan (hashing should be fine).
+- #orders/customer, revenue/order, category mix, SP share
+→ If imbalanced, note it and keep the plan (hashing should be fine).
 
 # 10) Window & stopping
 
