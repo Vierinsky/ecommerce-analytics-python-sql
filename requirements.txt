@@ -4,5 +4,6 @@ matplotlib
 scipy
 SQLAlchemy
 psycopg2-binary
+alembic>=1.13,<2            # opcional, migraciones
 python-dotenv
 requests
