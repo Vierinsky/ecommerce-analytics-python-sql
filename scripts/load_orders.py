@@ -40,7 +40,7 @@ csv_path = Path.cwd() / "data" / "sample_orders.csv"
 
 # Mapping date columns' names
 date_cols = [
-    "order_purchase_timestamp",
+    # "order_purchase_timestamp",
     "order_approved_at",
     "order_delivered_customer_date",
     "order_estimated_delivery_date"
