@@ -62,7 +62,7 @@ df = pd.read_csv(
 df["_ingested_at"] = pd.Timestamp.utcnow()
 
 # _source_file = Which file fed this row (helps trace issues later)
-df["_source_file"] = os.path.basename(csv_path.name)
+df["_source_file"] = csv_path.name
 
 # _row_md5 = simple row-level checksum for idempotency/dedup in staging
 # We hash a stable concatenation of key fields.

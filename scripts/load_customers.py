@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import hashlib
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
-from sqlalchemy.types import Text, DateTime, Numeric
+from sqlalchemy.types import Text, DateTime
 import pandas as pd
 from pathlib import Path
 import os
@@ -43,8 +43,8 @@ csv_path = Path.cwd() / "data" / "sample_customers.csv"
 # Mapping expected columns
 expected_cols = [
     "customer_id",
-    "customer_unique_id",
-    "customer_zip_code_prefix",
+    # "customer_unique_id",
+    # "customer_zip_code_prefix",
     "customer_city",
     "customer_state"
 ]
@@ -62,7 +62,7 @@ df = pd.read_csv(
 df["_ingested_at"] = pd.Timestamp.utcnow()
 
 # _source_file = Which file fed this row (helps trace issues later)
-df["_source_file"] = os.path.basename(csv_path.name)
+df["_source_file"] = csv_path.name
 
 # _row_md5 = simple row-level checksum for idempotency/dedup in staging
 # We hash a stable concatenation of key fields.
@@ -71,8 +71,8 @@ def row_hash(row) -> str:
     # We use natural keys + important fields that define the row's identity
     parts = [
         str(row["customer_id"]),
-        str(row["customer_unique_id"]),
-        str(row["customer_zip_code_prefix"]),
+        str(row["customer_city"]),
+        str(row["customer_state"]),
     ]
 
     txt = "|".join(parts)
@@ -82,10 +82,13 @@ df["_row_md5"] = df.apply(row_hash, axis=1)
 
 dtype_map = {
     "customer_id" : Text(),
-    "customer_unique_id" : Text(),
-    "customer_zip_code_prefix" : Text(),
+    # "customer_unique_id" : Text(),
+    # "customer_zip_code_prefix" : Text(),
     "customer_city" : Text(),
-    "customer_state" : Text()
+    "customer_state" : Text(),
+    "_ingested_at": DateTime(),
+    "_source_file": Text(),
+    "_row_md5": Text(),
 }
 
 # -------- 6) Write to Postgres (staging.customers_raw) --------
