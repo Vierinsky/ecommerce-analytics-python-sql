@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import hashlib
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
-from sqlalchemy.types import Text, Integer, Numeric
+from sqlalchemy.types import Text, Integer, Numeric, DateTime
 import pandas as pd
 from pathlib import Path
 import os
@@ -35,7 +35,7 @@ engine = create_engine(url, echo=False, pool_pre_ping=True, future=True)
 
 # -------- 3) Load the CSV with pandas --------
 
-# Creating a relative path to sample_orders.csv
+# Creating a relative path to sample_order_items.csv
     # Run this script while located in root folder
 csv_path = Path.cwd() / "data" / "sample_order_items.csv"
 
@@ -50,9 +50,8 @@ expected_cols = [
 ]
 
 # Creating a Pandas df
-sample_orders = pd.read_csv(
+df = pd.read_csv(
     csv_path, 
-    parse_dates=date_cols, 
     keep_default_na=True,    # empty strings -> NaN
     usecols=expected_cols
     )
@@ -60,10 +59,10 @@ sample_orders = pd.read_csv(
 # -------- 4) Add operational columns --------
 
 # _ingested_at = when we loaded the row
-sample_orders["_ingested_at"] = pd.Timestamp.utcnow()
+df["_ingested_at"] = pd.Timestamp.utcnow()
 
 # _source_file = Which file fed this row (helps trace issues later)
-sample_orders["_source_file"] = os.path.basename(csv_path)
+df["_source_file"] = os.path.basename(csv_path.name)
 
 # _row_md5 = simple row-level checksum for idempotency/dedup in staging
 # We hash a stable concatenation of key fields.
@@ -72,14 +71,15 @@ def row_hash(row) -> str:
     # We use natural keys + important fields that define the row's identity
     parts = [
         str(row["order_id"]),
+        str(row["order_item_id"]),
         str(row["product_id"]),
-        str(row["seller_id"]),
+        str(row["seller_id"])
     ]
 
     txt = "|".join(parts)
     return hashlib.md5(txt.encode("utf-8")).hexdigest()
 
-sample_orders["_row_md5"] = sample_orders.apply(row_hash, axis=1)
+df["_row_md5"] = df.apply(row_hash, axis=1)
 
 # -------- 5) Map pandas dtypes to SQL column types (optional) --------
 # This helps Postgres store correct types. Matches staging.orders_raw DDL.
@@ -90,8 +90,43 @@ dtype_map = {
     "product_id" : Text(),
     "seller_id" : Text(),
     "price" : Numeric(),
-    "freight_value" : Numeric()
+    "freight_value" : Numeric(),
+    "_ingested_at" : DateTime(),
+    "_source_file" : Text(),
+    "_row_md5" : Text()
 }
 
-# -------- 6) Write to Postgres (staging.orders_raw) --------
+# -------- 6) Write to Postgres (staging.order_items_raw) --------
 # if_exists='append' so we can run it multiple times; let's use chunksize for large files
+
+table_name = "order_items_raw"
+schema_name = "staging"
+
+with engine.begin() as conn: # begin() = transaction; commits or rolls back automatically
+    # Optional: simple dedup strategy per file — delete rows with same _source_file first
+    # This makes reruns idempotent for the same CSV. Comment out if you prefer pure append.
+
+    conn.exec_driver_sql(
+        f"DELETE FROM {schema_name}.{table_name} WHERE _source_file = %(src)s",
+        {"src": csv_path.name},
+    )
+
+    df.to_sql(
+        name=table_name,
+        con=conn,
+        schema=schema_name,
+        if_exists="append",
+        index=False,
+        dtype=dtype_map,
+        method="multi",     # batched inserts
+        chunksize=1_000,    # can be adjusted
+    )
+
+# -------- 7) Quick verification query --------
+
+with engine.connect() as conn:
+    res = conn.exec_driver_sql("SELECT COUNT(*) FROM staging.order_items_raw;")
+    count = res.scalar_one()
+    print(f"Loaded rows in staging.order_items_raw: {count}")
+
+print("Done.")

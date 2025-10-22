@@ -59,7 +59,7 @@ expected_cols = [
 ]
 
 # Creating a Pandas df
-sample_orders = pd.read_csv(
+df = pd.read_csv(
     csv_path, 
     parse_dates=date_cols, 
     keep_default_na=True,    # empty strings -> NaN
@@ -69,10 +69,10 @@ sample_orders = pd.read_csv(
 # -------- 4) Add operational columns --------
 
 # _ingested_at = when we loaded the row
-sample_orders["_ingested_at"] = pd.Timestamp.utcnow()
+df["_ingested_at"] = pd.Timestamp.utcnow()
 
 # _source_file = Which file fed this row (helps trace issues later)
-sample_orders["_source_file"] = os.path.basename(csv_path)
+df["_source_file"] = os.path.basename(csv_path.name)
 
 # _row_md5 = simple row-level checksum for idempotency/dedup in staging
 # We hash a stable concatenation of key fields.
@@ -91,7 +91,7 @@ def row_hash(row) -> str:
     txt = "|".join(parts)
     return hashlib.md5(txt.encode("utf-8")).hexdigest()
 
-sample_orders["_row_md5"] = sample_orders.apply(row_hash, axis=1)
+df["_row_md5"] = df.apply(row_hash, axis=1)
 
 # -------- 5) Map pandas dtypes to SQL column types (optional) --------
 # This helps Postgres store correct types. Matches staging.orders_raw DDL.
@@ -121,10 +121,10 @@ with engine.begin() as conn: # begin() = transaction; commits or rolls back auto
 
     conn.exec_driver_sql(
         f"DELETE FROM {schema_name}.{table_name} WHERE _source_file = %(src)s",
-        {"src": os.path.basename(csv_path)},
+        {"src": csv_path.name},
     )
 
-    sample_orders.to_sql(
+    df.to_sql(
         name=table_name,
         con=conn,
         schema=schema_name,
