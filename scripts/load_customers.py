@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import hashlib
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
-from sqlalchemy.types import Text, Integer, Numeric, DateTime
+from sqlalchemy.types import Text, DateTime, Numeric
 import pandas as pd
 from pathlib import Path
 import os
@@ -35,18 +35,18 @@ engine = create_engine(url, echo=False, pool_pre_ping=True, future=True)
 
 # -------- 3) Load the CSV with pandas --------
 
-# Creating a relative path to sample_order_items.csv
+# Creating a relative path to sample_customers.csv
     # Run this script while located in root folder
-csv_path = Path.cwd() / "data" / "sample_order_items.csv"
+
+csv_path = Path.cwd() / "data" / "sample_customers.csv"
 
 # Mapping expected columns
 expected_cols = [
-    "order_id",
-    "order_item_id",
-    "product_id",
-    "seller_id",
-    "price",
-    "freight_value"
+    "customer_id",
+    "customer_unique_id",
+    "customer_zip_code_prefix",
+    "customer_city",
+    "customer_state"
 ]
 
 # Creating a Pandas df
@@ -70,10 +70,9 @@ df["_source_file"] = os.path.basename(csv_path.name)
 def row_hash(row) -> str:
     # We use natural keys + important fields that define the row's identity
     parts = [
-        str(row["order_id"]),
-        str(row["order_item_id"]),
-        str(row["product_id"]),
-        str(row["seller_id"])
+        str(row["customer_id"]),
+        str(row["customer_unique_id"]),
+        str(row["customer_zip_code_prefix"]),
     ]
 
     txt = "|".join(parts)
@@ -81,25 +80,18 @@ def row_hash(row) -> str:
 
 df["_row_md5"] = df.apply(row_hash, axis=1)
 
-# -------- 5) Map pandas dtypes to SQL column types (optional) --------
-# This helps Postgres store correct types. Matches staging.order_items_raw DDL.
-
 dtype_map = {
-    "order_id" : Text(),
-    "order_item_id" : Integer(),
-    "product_id" : Text(),
-    "seller_id" : Text(),
-    "price" : Numeric(),
-    "freight_value" : Numeric(),
-    "_ingested_at" : DateTime(),
-    "_source_file" : Text(),
-    "_row_md5" : Text()
+    "customer_id" : Text(),
+    "customer_unique_id" : Text(),
+    "customer_zip_code_prefix" : Text(),
+    "customer_city" : Text(),
+    "customer_state" : Text()
 }
 
-# -------- 6) Write to Postgres (staging.order_items_raw) --------
+# -------- 6) Write to Postgres (staging.customers_raw) --------
 # if_exists='append' so we can run it multiple times; let's use chunksize for large files
 
-table_name = "order_items_raw"
+table_name = "customers_raw"
 schema_name = "staging"
 
 with engine.begin() as conn: # begin() = transaction; commits or rolls back automatically
@@ -125,8 +117,8 @@ with engine.begin() as conn: # begin() = transaction; commits or rolls back auto
 # -------- 7) Quick verification query --------
 
 with engine.connect() as conn:
-    res = conn.exec_driver_sql("SELECT COUNT(*) FROM staging.order_items_raw;")
+    res = conn.exec_driver_sql("SELECT COUNT(*) FROM staging.customers_raw;")
     count = res.scalar_one()
-    print(f"Loaded rows in staging.order_items_raw: {count}")
+    print(f"Loaded rows in staging.customers_raw: {count}")
 
 print("Done.")
