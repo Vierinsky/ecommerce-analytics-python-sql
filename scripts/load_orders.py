@@ -36,6 +36,7 @@ engine = create_engine(url, echo=False, pool_pre_ping=True, future=True)
 # -------- 3) Load the CSV with pandas --------
 
 # Creating a relative path to sample_orders.csv
+    # Run this script while located in root folder
 csv_path = Path.cwd() / "data" / "sample_orders.csv"
 
 # Mapping date columns' names
@@ -58,7 +59,6 @@ expected_cols = [
 ]
 
 # Creating a Pandas df
-
 sample_orders = pd.read_csv(
     csv_path, 
     parse_dates=date_cols, 
