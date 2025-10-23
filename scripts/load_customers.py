@@ -38,7 +38,7 @@ engine = create_engine(url, echo=False, pool_pre_ping=True, future=True)
 # Creating a relative path to sample_customers.csv
     # Run this script while located in root folder
 
-csv_path = Path.cwd() / "data" / "sample_customers.csv"
+csv_path = Path.cwd() / "data" / "olist_customers_dataset.csv"
 
 # Mapping expected columns
 expected_cols = [
