@@ -109,7 +109,7 @@ Compare A vs B on pre-period metrics (before start_date):
 
 3) Test results (statistic, p-value, 95% CI, effect size)
 
-4) Guardrails (all pass/fail)
+4) Guardrails (all pass / fail)
 
 5) Robustness (Mann-Whitney / median)
 
