@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import hashlib
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
-from sqlalchemy.types import Text, Integer, Numeric, DateTime
+from sqlalchemy.types import Text, DateTime, Integer
 import pandas as pd
 from pathlib import Path
 import os
@@ -35,39 +35,30 @@ engine = create_engine(url, echo=False, pool_pre_ping=True, future=True)
 
 # -------- 3) Load the CSV with pandas --------
 
-# Creating a relative path to sample_order_items.csv
+# Creating a relative path to sample_orders.csv
     # Run this script while located in root folder
-csv_path = Path.cwd() / "data" / "olist_products_dataset.csv"
+csv_path = Path.cwd() / "data" / "olist_reviews_dataset.csv"
 
-csv_path_trans = Path.cwd() / "data" / "product_category_name_translation.csv"
+# Mapping date columns' names
+date_cols = [
+    "review_creation_date"
+]
 
 # Mapping expected columns
 expected_cols = [
-    "product_id", 
-    "product_category_name",
-]
-
-expected_cols_trans = [
-    "product_category_name",
-    "product_category_name_english"
+    "review_id",
+    "order_id",
+    "review_score",
+    "review_creation_date"
 ]
 
 # Creating a Pandas df
 df = pd.read_csv(
     csv_path, 
+    parse_dates=date_cols, 
     keep_default_na=True,    # empty strings -> NaN
     usecols=expected_cols
     )
-
-df_trans = pd.read_csv(
-    csv_path_trans, 
-    keep_default_na=True,
-    usecols=expected_cols_trans
-    )
-
-# Join the two df's into one with both the portuguese and the english category names
-
-df = pd.merge(df, df_trans, on="product_category_name", how="inner")
 
 # -------- 4) Add operational columns --------
 
@@ -75,7 +66,7 @@ df = pd.merge(df, df_trans, on="product_category_name", how="inner")
 df["_ingested_at"] = pd.Timestamp.utcnow()
 
 # _source_file = Which file fed this row (helps trace issues later)
-df["_source_file"] = f"{csv_path.name}+{csv_path_trans.name}"
+df["_source_file"] = csv_path.name
 
 # _row_md5 = simple row-level checksum for idempotency/dedup in staging
 # We hash a stable concatenation of key fields.
@@ -83,8 +74,42 @@ df["_source_file"] = f"{csv_path.name}+{csv_path_trans.name}"
 def row_hash(row) -> str:
     # We use natural keys + important fields that define the row's identity
     parts = [
+        str(row["review_id"]),
+        str(row["order_id"]),
+        
+        # We use ISD format for datetimes to make deterministic strings
+        row["review_creation_date"].isoformat() if pd.notna(row["order_approved_at"]) else ""
+    ]
+    txt = "|".join(parts)
+    return hashlib.md5(txt.encode("utf-8")).hexdigest()
+
+df["_row_md5"] = df.apply(row_hash, axis=1)
+
+# -------- 5) Map pandas dtypes to SQL column types (optional) --------
+# This helps Postgres store correct types. Matches staging.orders_raw DDL.
+
+dtype_map = {
+    "review_id" : Text(),
+    "order_id" : Text(),
+    "review_score" : Integer(),
+    "review_creation_date" : DateTime(),
+    "_ingested_at" : DateTime(), 
+    "_source_file" : Text(), 
+    "_row_md5" : Text()
+}
+
+
+
+# _row_md5 = simple row-level checksum for idempotency/dedup in staging
+# We hash a stable concatenation of key fields.
+
+def row_hash(row) -> str:
+    # We use natural keys + important fields that define the row's identity
+    parts = [
+        str(row["order_id"]),
+        str(row["order_item_id"]),
         str(row["product_id"]),
-        str(row["product_category_name_english"])
+        str(row["seller_id"])
     ]
 
     txt = "|".join(parts)
@@ -92,19 +117,23 @@ def row_hash(row) -> str:
 
 df["_row_md5"] = df.apply(row_hash, axis=1)
 
+# -------- 5) Map pandas dtypes to SQL column types (optional) --------
+# This helps Postgres store correct types. Matches staging.order_items_raw DDL.
+
 dtype_map = {
-    "product_id" : Text(), 
-    "product_category_name" : Text(),
-    "product_category_name_english" : Text(),
-    "_ingested_at" : DateTime(), 
-    "_source_file" : Text(), 
+    "review_id" : Text(),
+    "order_id" : Text(),
+    "review_score" : Integer(),
+    "review_creation_date" : DateTime(),
+    "_ingested_at" : DateTime(),
+    "_source_file" : Text(),
     "_row_md5" : Text()
 }
 
-# -------- 6) Write to Postgres (staging.products_raw) --------
+# -------- 6) Write to Postgres (staging.order_items_raw) --------
 # if_exists='append' so we can run it multiple times; let's use chunksize for large files
 
-table_name = "products_raw"
+table_name = "reviews_raw"
 schema_name = "staging"
 
 with engine.begin() as conn: # begin() = transaction; commits or rolls back automatically
@@ -113,7 +142,7 @@ with engine.begin() as conn: # begin() = transaction; commits or rolls back auto
 
     conn.exec_driver_sql(
         f"DELETE FROM {schema_name}.{table_name} WHERE _source_file = %(src)s",
-        {"src": f"{csv_path.name}+{csv_path_trans.name}"},
+        {"src": csv_path.name},
     )
 
     df.to_sql(
@@ -127,7 +156,7 @@ with engine.begin() as conn: # begin() = transaction; commits or rolls back auto
         chunksize=1_000,    # can be adjusted
     )
 
-    # -------- 7) Quick verification query --------
+# -------- 7) Quick verification query --------
 
 with engine.connect() as conn:
     res = conn.exec_driver_sql("SELECT COUNT(*) FROM staging.order_items_raw;")
