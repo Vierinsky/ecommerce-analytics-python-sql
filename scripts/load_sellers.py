@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import hashlib
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
-from sqlalchemy.types import Text, DateTime, Integer
+from sqlalchemy.types import Text, DateTime, Numeric
 import pandas as pd
 from pathlib import Path
 import os
@@ -37,25 +37,18 @@ engine = create_engine(url, echo=False, pool_pre_ping=True, future=True)
 
 # Creating a relative path to sample_orders.csv
     # Run this script while located in root folder
-csv_path = Path.cwd() / "data" / "olist_reviews_dataset.csv"
-
-# Mapping date columns' names
-date_cols = [
-    "review_creation_date"
-]
+csv_path = Path.cwd() / "data" / "olist_sellers_dataset.csv"
 
 # Mapping expected columns
 expected_cols = [
-    "review_id",
-    "order_id",
-    "review_score",
-    "review_creation_date"
+    "seller_id", 
+    "seller_city",
+    "seller_state"
 ]
 
 # Creating a Pandas df
 df = pd.read_csv(
     csv_path, 
-    parse_dates=date_cols, 
     keep_default_na=True,    # empty strings -> NaN
     usecols=expected_cols
     )
@@ -74,42 +67,9 @@ df["_source_file"] = csv_path.name
 def row_hash(row) -> str:
     # We use natural keys + important fields that define the row's identity
     parts = [
-        str(row["review_id"]),
-        str(row["order_id"]),
-        
-        # We use ISD format for datetimes to make deterministic strings
-        row["review_creation_date"].isoformat() if pd.notna(row["order_approved_at"]) else ""
-    ]
-    txt = "|".join(parts)
-    return hashlib.md5(txt.encode("utf-8")).hexdigest()
-
-df["_row_md5"] = df.apply(row_hash, axis=1)
-
-# -------- 5) Map pandas dtypes to SQL column types (optional) --------
-# This helps Postgres store correct types. Matches staging.orders_raw DDL.
-
-dtype_map = {
-    "review_id" : Text(),
-    "order_id" : Text(),
-    "review_score" : Integer(),
-    "review_creation_date" : DateTime(),
-    "_ingested_at" : DateTime(), 
-    "_source_file" : Text(), 
-    "_row_md5" : Text()
-}
-
-
-
-# _row_md5 = simple row-level checksum for idempotency/dedup in staging
-# We hash a stable concatenation of key fields.
-
-def row_hash(row) -> str:
-    # We use natural keys + important fields that define the row's identity
-    parts = [
-        str(row["order_id"]),
-        str(row["order_item_id"]),
-        str(row["product_id"]),
-        str(row["seller_id"])
+        str(row["seller_id"]),
+        str(row["seller_city"]),
+        str(row["seller_state"]),
     ]
 
     txt = "|".join(parts)
@@ -118,22 +78,21 @@ def row_hash(row) -> str:
 df["_row_md5"] = df.apply(row_hash, axis=1)
 
 # -------- 5) Map pandas dtypes to SQL column types (optional) --------
-# This helps Postgres store correct types. Matches staging.order_items_raw DDL.
+# This helps Postgres store correct types. Matches staging.sellers_raw DDL.
 
 dtype_map = {
-    "review_id" : Text(),
-    "order_id" : Text(),
-    "review_score" : Integer(),
-    "review_creation_date" : DateTime(),
+    "seller_id" : Text(), 
+    "seller_city" : Text(),
+    "seller_state" : Text(),
     "_ingested_at" : DateTime(),
     "_source_file" : Text(),
     "_row_md5" : Text()
 }
 
-# -------- 6) Write to Postgres (staging.order_items_raw) --------
+# -------- 6) Write to Postgres (staging.sellers_raw) --------
 # if_exists='append' so we can run it multiple times; let's use chunksize for large files
 
-table_name = "reviews_raw"
+table_name = "sellers_raw"
 schema_name = "staging"
 
 with engine.begin() as conn: # begin() = transaction; commits or rolls back automatically
@@ -159,8 +118,8 @@ with engine.begin() as conn: # begin() = transaction; commits or rolls back auto
 # -------- 7) Quick verification query --------
 
 with engine.connect() as conn:
-    res = conn.exec_driver_sql("SELECT COUNT(*) FROM staging.reviews_raw;")
+    res = conn.exec_driver_sql("SELECT COUNT(*) FROM staging.sellers_raw;")
     count = res.scalar_one()
-    print(f"Loaded rows in staging.reviews_raw: {count}")
+    print(f"Loaded rows in staging.sellers_raw: {count}")
 
 print("Done.")

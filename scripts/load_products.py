@@ -130,8 +130,8 @@ with engine.begin() as conn: # begin() = transaction; commits or rolls back auto
     # -------- 7) Quick verification query --------
 
 with engine.connect() as conn:
-    res = conn.exec_driver_sql("SELECT COUNT(*) FROM staging.order_items_raw;")
+    res = conn.exec_driver_sql("SELECT COUNT(*) FROM staging.products_raw;")
     count = res.scalar_one()
-    print(f"Loaded rows in staging.order_items_raw: {count}")
+    print(f"Loaded rows in staging.products_raw: {count}")
 
 print("Done.")
