@@ -59,6 +59,13 @@ CREATE TABLE IF NOT EXISTS core.dim_product(
 INSERT INTO core.dim_product (product_id, product_category_name)
 SELECT DISTINCT
     p.product_id,
-    TRIM(LOWER(p.product_category_name_english))
+    TRIM(LOWER(p.product_category_name_english)) AS product_category_name
 FROM staging.products_raw p
 ON CONFLICT (product_id) DO NOTHING;
+
+-- Sanity checks
+SELECT COUNT(*) FROM core.dim_calendar;
+SELECT COUNT(*) FROM core.dim_customer;
+SELECT COUNT(*) FROM core.dim_product;
+SELECT * FROM core.dim_customer LIMIT 5;
+SELECT * FROM core.dim_product LIMIT 5;
