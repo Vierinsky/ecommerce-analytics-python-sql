@@ -48,4 +48,17 @@ SELECT DISTINCT
 FROM staging.customers_raw c
 ON CONFLICT (customer_id) DO NOTHING;
 
--- (Optional) core.dim_product
+-- core.dim_product table
+CREATE TABLE IF NOT EXISTS core.dim_product(
+    product_sk SERIAL PRIMARY KEY,
+    product_id TEXT UNIQUE NOT NULL,
+    product_category_name TEXT
+);
+
+-- populate core.dim_product table
+INSERT INTO core.dim_product (product_id, product_category_name)
+SELECT DISTINCT
+    p.product_id,
+    TRIM(LOWER(p.product_category_name_english))
+FROM staging.products_raw p
+ON CONFLICT (product_id) DO NOTHING;
