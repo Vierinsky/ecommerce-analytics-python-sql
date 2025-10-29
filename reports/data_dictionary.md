@@ -6,7 +6,7 @@
 |---|---|---|---|---|---|
 | event_id | integer | Unique event identifier | 1 | No | Primary key |
 | order_id | string | Unique order identifier | b81ef226f3fe1789b1e8b2acac839d17 | No | Data source origin value |
-| order_item_id | string | Unique item within an order identifier | 1 | No | - |
+| order_item_id | integer | Unique item within an order identifier | 1 | No | - |
 | price | float | Order's net price | 58.9 | No | Does not include freight |
 | freight_value | float | Freight's cost | 19.93 | No | - |
 | lead_time_days | integer | Delivered date - Approved date in days | 12 | No | - |

@@ -20,3 +20,5 @@ __pycache__/
 .vscode/
 # Plan con fases y pasos a seguir para proyecto
 plan.md
+
+*.session.sql
