@@ -42,8 +42,11 @@ joined AS (
     JOIN core.dim_customer dc ON dc.customer_id = c.customer_id
     JOIN core.dim_product dp ON dp.product_id = c.product_id
     JOIN core.dim_calendar dcal ON dcal.date = c.delivered_date
-    JOIN core.dim_seller s ON s.seller_id = c.seller_id
+    -- JOIN core.dim_seller s ON s.seller_id = c.seller_id
 )
+
+-- SELECT * FROM joined LIMIT 20;
+
 
 INSERT INTO core.facts_events (
     order_id,
@@ -55,8 +58,33 @@ INSERT INTO core.facts_events (
     calendar_sk,
     customer_sk,
     product_sk,
-    seller_sk
---  external_sk
+    -- seller_sk
+    -- external_sk
 )
 
+-- Computing derived fields
 SELECT 
+    j.order_id,
+    j.order_item_id,
+    j.price,
+    j.freight_value,
+
+    -- lead time in days (approved -> delivered)
+    CASE
+        WHEN j.order_delivered_customer_date IS NOT NULL
+        AND j.order_approved_at IS NOT NULL
+        THEN EXTRACT(EPOCH FROM (j.order_delivered_customer_date - j.order_approved_at)) / 86400.0
+        ELSE NULL 
+    END AS lead_time_days,
+
+    -- on-time: 1 if delivered <= estimated; 0 if delivered > estimated; NULL if there's no estimated or delivered
+    CASE
+        WHEN j.order_delivered_customer_date IS NULL OR j.order_estimated_delivery_date IS NULL THEN NULL
+        WHEN j.order_delivered_customer_date <= j.order_estimated_delivery_date THEN 1
+        ELSE 0
+    END AS on_time_flag,
+
+    j.calendar_sk,
+    j.customer_sk,
+    j.product_sk
+;
