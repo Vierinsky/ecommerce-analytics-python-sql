@@ -17,9 +17,6 @@ CREATE TABLE IF NOT EXISTS core.facts_events(
     CONSTRAINT fk_fact_calendar FOREIGN KEY (calendar_sk) REFERENCES core.dim_calendar (calendar_sk),
     CONSTRAINT fk_fact_customer FOREIGN KEY (customer_sk) REFERENCES core.dim_customer (customer_sk),
     CONSTRAINT fk_fact_product FOREIGN KEY (product_sk) REFERENCES core.dim_product (product_sk),
---  CONSTRAINT fk_fact_seller FOREIGN KEY (seller_sk) REFERENCES core.dime_seller (seller_sk),
+    CONSTRAINT fk_fact_seller FOREIGN KEY (seller_sk) REFERENCES core.dim_seller (seller_sk),
 --  CONSTRAINT  FOREIGN KEY (external_sk) REFERENCES  ()
 );
-
--- Populate
-INSERT INTO core.facts_events ();
