@@ -125,3 +125,23 @@ WHERE core.fact_events._row_md5 IS DISTINCT FROM EXCLUDED._row_md5
     OR core.fact_events.calendar_sk IS DISTINCT FROM EXCLUDED.calendar_sk
     OR core.fact_events.customer_sk IS DISTINCT FROM EXCLUDED.customer_sk
     OR core.fact_events.product_sk IS DISTINCT FROM EXCLUDED.product_sk;
+
+-- Quick post-run checks:
+
+-- -- No duplicates (should be 0 rows)
+-- SELECT order_id, order_item_id, COUNT(*) 
+-- FROM core.fact_events
+-- GROUP BY 1,2 HAVING COUNT(*) > 1;
+
+-- -- Null SKs (should be 0)
+-- SELECT
+--   SUM((calendar_sk IS NULL)::int) AS null_cal,
+--   SUM((customer_sk IS NULL)::int) AS null_cust,
+--   SUM((product_sk  IS NULL)::int) AS null_prod
+-- FROM core.fact_events;
+
+-- -- Negative money or time:
+-- SELECT COUNT(*) FROM core.fact_events WHERE price < 0 OR freight_value < 0;
+-- SELECT COUNT(*) FROM core.fact_events WHERE lead_time_days < 0;
+
+-- SELECT * FROM core.fact_events LIMIT 20;
