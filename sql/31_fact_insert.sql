@@ -62,10 +62,12 @@ joined AS (
 
 -- SELECT * FROM joined LIMIT 20;
 
--- Add a hash column to fact (optional)
+-- Add a hash column to fact
 ALTER TABLE core.fact_events 
     ADD COLUMN IF NOT EXISTS _row_md5 TEXT;
 
+-- Upsert with conditional update
+    -- Updates only when (a) the business hash changed or (b) any SK changed.
 INSERT INTO core.facts_events (
     order_id,
     order_item_id,
@@ -76,6 +78,7 @@ INSERT INTO core.facts_events (
     calendar_sk,
     customer_sk,
     product_sk,
+    _row_md5
     -- seller_sk
     -- external_sk
 )
@@ -86,7 +89,6 @@ SELECT
     j.order_item_id,
     j.price,
     j.freight_value,
-    -- j._row_md5
 
     -- lead time in days (approved -> delivered)
     CASE
@@ -105,18 +107,21 @@ SELECT
 
     j.calendar_sk,
     j.customer_sk,
-    j.product_sk
-
-
--- ON CONFLICT (order_id, order_item_id) DO UPDATE
--- SET
---     price          = EXCLUDED.price,
---     freight_value  = EXCLUDED.freight_value,
---     lead_time_days = EXCLUDED.lead_time_days,
---     on_time_flag   = EXCLUDED.on_time_flag,
---     calendar_sk    = EXCLUDED.calendar_sk,
---     customer_sk    = EXCLUDED.customer_sk,
---     product_sk     = EXCLUDED.product_sk
--- WHERE core.fact_events._row_md5 IS DISTINCT FROM EXCLUDED._row_md5;
-;
-
+    j.product_sk,
+    j._row_md5
+FROM joined j
+ON CONFLICT (order_id, order_item_id) DO UPDATE
+SET
+    price          = EXCLUDED.price,
+    freight_value  = EXCLUDED.freight_value,
+    lead_time_days = EXCLUDED.lead_time_days,
+    on_time_flag   = EXCLUDED.on_time_flag,
+    calendar_sk    = EXCLUDED.calendar_sk,
+    customer_sk    = EXCLUDED.customer_sk,
+    product_sk     = EXCLUDED.product_sk,
+    _row_md5       = EXCLUDED._row_md5
+/* Update only when something relevant changed */
+WHERE core.fact_events._row_md5 IS DISTINCT FROM EXCLUDED._row_md5
+    OR core.fact_events.calendar_sk IS DISTINCT FROM EXCLUDED.calendar_sk
+    OR core.fact_events.customer_sk IS DISTINCT FROM EXCLUDED.customer_sk
+    OR core.fact_events.product_sk IS DISTINCT FROM EXCLUDED.product_sk;
