@@ -44,9 +44,9 @@ joined AS (
             concat_ws('|', 
                 c.order_id,
                 c.order_item_id::text,
-                /* money fields as text with fised scale */
-                to_char(c.price, 'FM9999999990.00'),
-                to_char(c.freight_value, 'FM9999999990.00'),
+                /* money fields as text with fixed scale */
+                to_char(c.price, 'FM9999999999990.00'),
+                to_char(c.freight_value, 'FM9999999999990.00'),
                 /* dates to ISO; NULL->'' so hash is stable */
                 coalesce(to_char(c.order_approved_at, 'YYYY-MM-DD"T"HH24:MI:SS'), ''),
                 coalesce(to_char(c.order_delivered_customer_date, 'YYYY-MM-DD"T"HH24:MI:SS'), ''),
@@ -62,14 +62,13 @@ joined AS (
 
 -- SELECT * FROM joined LIMIT 20;
 
--- Add a hash column to fact
-ALTER TABLE core.fact_events 
-    ADD COLUMN IF NOT EXISTS _row_md5 TEXT;
+-- -- Add a hash column to fact
+-- ALTER TABLE core.fact_events ADD COLUMN IF NOT EXISTS _row_md5 TEXT;
 
 -- Upsert with conditional update
     -- Note: “UPSERT” = UPdate or inSERT.
     -- Updates only when (a) the business hash changed or (b) any SK changed.
-INSERT INTO core.facts_events (
+INSERT INTO core.fact_events (
     order_id,
     order_item_id,
     price,

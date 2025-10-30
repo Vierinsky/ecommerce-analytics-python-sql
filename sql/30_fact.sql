@@ -1,17 +1,18 @@
--- Creating core.facts_events table
-CREATE TABLE IF NOT EXISTS core.facts_events(
+-- Creating core.fact_events table
+CREATE TABLE IF NOT EXISTS core.fact_events(
     event_id BIGSERIAL PRIMARY KEY,
     order_id TEXT,
     order_item_id INT,
     price NUMERIC,
     freight_value NUMERIC(12,2),
-    lead_time_days SMALLINT,
+    lead_time_days NUMERIC,
     on_time_flag INT,
     calendar_sk INT,
     customer_sk INT,
     product_sk INT,
     seller_sk INT,
     external_sk INT,
+    _row_md5 TEXT,
 
     CONSTRAINT uq_fact_order_item UNIQUE (order_id, order_item_id),
     CONSTRAINT fk_fact_calendar FOREIGN KEY (calendar_sk) REFERENCES core.dim_calendar (calendar_sk),
@@ -20,3 +21,5 @@ CREATE TABLE IF NOT EXISTS core.facts_events(
     -- CONSTRAINT fk_fact_seller FOREIGN KEY (seller_sk) REFERENCES core.dim_seller (seller_sk)
     -- CONSTRAINT  FOREIGN KEY (external_sk) REFERENCES  ()
 );
+
+-- DROP TABLE core.fact_events;
