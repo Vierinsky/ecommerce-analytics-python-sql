@@ -37,7 +37,22 @@ joined AS (
         c.order_estimated_delivery_date,
         dc.customer_sk,
         dp.product_sk,
-        dcal.calendar_sk
+        dcal.calendar_sk,
+
+        /* Deterministic hash of business inputs */
+        md5(
+            concat_ws('|', 
+                c.order_id,
+                c.order_item_id::text,
+                /* money fields as text with fised scale */
+                to_char(c.price, 'FM9999999990.00'),
+                to_char(c.freight_value, 'FM9999999990.00'),
+                /* dates to ISO; NULL->'' so hash is stable */
+                coalesce(to_char(c.order_approved_at, 'YYYY-MM-DD"T"HH24:MI:SS'), ''),
+                coalesce(to_char(c.order_delivered_customer_date, 'YYYY-MM-DD"T"HH24:MI:SS'), ''),
+                coalesce(to_char(c.order_estimated_delivery_date, 'YYYY-MM-DD"T"HH24:MI:SS'), '')
+            )
+        ) AS _row_md5
     FROM cal c
     JOIN core.dim_customer dc ON dc.customer_id = c.customer_id
     JOIN core.dim_product dp ON dp.product_id = c.product_id
@@ -47,6 +62,9 @@ joined AS (
 
 -- SELECT * FROM joined LIMIT 20;
 
+-- Add a hash column to fact (optional)
+ALTER TABLE core.fact_events 
+    ADD COLUMN IF NOT EXISTS _row_md5 TEXT;
 
 INSERT INTO core.facts_events (
     order_id,
@@ -68,6 +86,7 @@ SELECT
     j.order_item_id,
     j.price,
     j.freight_value,
+    -- j._row_md5
 
     -- lead time in days (approved -> delivered)
     CASE
@@ -87,4 +106,17 @@ SELECT
     j.calendar_sk,
     j.customer_sk,
     j.product_sk
+
+
+-- ON CONFLICT (order_id, order_item_id) DO UPDATE
+-- SET
+--     price          = EXCLUDED.price,
+--     freight_value  = EXCLUDED.freight_value,
+--     lead_time_days = EXCLUDED.lead_time_days,
+--     on_time_flag   = EXCLUDED.on_time_flag,
+--     calendar_sk    = EXCLUDED.calendar_sk,
+--     customer_sk    = EXCLUDED.customer_sk,
+--     product_sk     = EXCLUDED.product_sk
+-- WHERE core.fact_events._row_md5 IS DISTINCT FROM EXCLUDED._row_md5;
 ;
+
