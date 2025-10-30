@@ -67,6 +67,7 @@ ALTER TABLE core.fact_events
     ADD COLUMN IF NOT EXISTS _row_md5 TEXT;
 
 -- Upsert with conditional update
+    -- Note: “UPSERT” = UPdate or inSERT.
     -- Updates only when (a) the business hash changed or (b) any SK changed.
 INSERT INTO core.facts_events (
     order_id,
