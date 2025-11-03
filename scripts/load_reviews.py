@@ -37,7 +37,7 @@ engine = create_engine(url, echo=False, pool_pre_ping=True, future=True)
 
 # Creating a relative path to sample_orders.csv
     # Run this script while located in root folder
-csv_path = Path.cwd() / "data" / "olist_reviews_dataset.csv"
+csv_path = Path.cwd() / "data" / "olist_order_reviews_dataset.csv"
 
 # Mapping date columns' names
 date_cols = [
@@ -78,7 +78,7 @@ def row_hash(row) -> str:
         str(row["order_id"]),
         
         # We use ISD format for datetimes to make deterministic strings
-        row["review_creation_date"].isoformat() if pd.notna(row["order_approved_at"]) else ""
+        row["review_creation_date"].isoformat() if pd.notna(row["review_creation_date"]) else ""
     ]
     txt = "|".join(parts)
     return hashlib.md5(txt.encode("utf-8")).hexdigest()
@@ -95,38 +95,6 @@ dtype_map = {
     "review_creation_date" : DateTime(),
     "_ingested_at" : DateTime(), 
     "_source_file" : Text(), 
-    "_row_md5" : Text()
-}
-
-
-
-# _row_md5 = simple row-level checksum for idempotency/dedup in staging
-# We hash a stable concatenation of key fields.
-
-def row_hash(row) -> str:
-    # We use natural keys + important fields that define the row's identity
-    parts = [
-        str(row["order_id"]),
-        str(row["order_item_id"]),
-        str(row["product_id"]),
-        str(row["seller_id"])
-    ]
-
-    txt = "|".join(parts)
-    return hashlib.md5(txt.encode("utf-8")).hexdigest()
-
-df["_row_md5"] = df.apply(row_hash, axis=1)
-
-# -------- 5) Map pandas dtypes to SQL column types (optional) --------
-# This helps Postgres store correct types. Matches staging.order_items_raw DDL.
-
-dtype_map = {
-    "review_id" : Text(),
-    "order_id" : Text(),
-    "review_score" : Integer(),
-    "review_creation_date" : DateTime(),
-    "_ingested_at" : DateTime(),
-    "_source_file" : Text(),
     "_row_md5" : Text()
 }
 
