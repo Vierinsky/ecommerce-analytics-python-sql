@@ -1,4 +1,5 @@
 -- Quarter/date helper (delivered date → quarter)
+    -- RUN ME
 CREATE OR REPLACE VIEW analytics.vw_orders_q_sp AS
 SELECT
     o.order_id,
@@ -15,6 +16,7 @@ WHERE o.order_status = "delivered"
     AND dcu.customer_city = "sao paulo";
 
 -- Deterministic hashing (customer → A/B)
+    -- RUN ME
 CREATE OR REPLACE VIEW analytics.vw_customer_ab AS
 SELECT
     dcu.customer_id,
