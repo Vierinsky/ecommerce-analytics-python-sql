@@ -9,9 +9,9 @@ JOIN core.dim_calendar dcal ON dcal.calendar_sk = f.calendar_sk
 GROUP BY 1,2;
 
 -- KPI Views
-    -- RUN ME
 
 -- Revenue (GMV without freight) — per quarter (SP)
+    -- RUN ME
 CREATE OR REPLACE VIEW analytics.vw_revenue_quarter_sp AS
 SELECT
   dcal.year,
@@ -30,7 +30,7 @@ WITH reviews AS (
     SELECT
     r.order_id,
     r.review_score
-    FROM staging.order_reviews_raw r
+    FROM staging.reviews_raw r
 ),
 orders_q AS (
     SELECT o.order_id, o.year, o.quarter
@@ -92,6 +92,7 @@ GROUP BY 1,2,3;
 
 -- A/B “analysis-ready” view (order-level, SP, with group)
     -- This aggregates order revenue (sum of items) and attaches the group
+    -- RUN ME
 CREATE OR REPLACE VIEW analytics.vw_ab_orders_sp AS
 WITH order_rev AS (
     SELECT
@@ -114,3 +115,10 @@ SELECT
     cab.group_id,
 FROM order_rev o
 JOIN analytics.vw_customer_ab cab ON cab.customer_id = o.customer_id;
+
+-- Quick check
+SELECT * FROM analytics.vw_revenue_quarter_sp LIMIT 5;
+SELECT * FROM analytics.vw_reviews_share_quarter_sp LIMIT 5;
+SELECT * FROM analytics.vw_on_time_rate_quarter_sp LIMIT 5;
+SELECT * FROM analytics.vw_leadtime_p90_quarter_sp LIMIT 5;
+SELECT * FROM analytics.vw_category_share_quarter_sp LIMIT 5;
