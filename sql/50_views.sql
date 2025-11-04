@@ -11,7 +11,6 @@ GROUP BY 1,2;
 -- KPI Views
 
 -- Revenue (GMV without freight) — per quarter (SP)
-    -- RUN ME
 CREATE OR REPLACE VIEW analytics.vw_revenue_quarter_sp AS
 SELECT
   dcal.year,
@@ -24,7 +23,6 @@ WHERE dcu.customer_city = 'sao paulo'
 GROUP BY 1,2;
 
 -- Share of reviews ≥ 4★ — per quarter (SP)
-    -- RUN ME
 CREATE OR REPLACE VIEW analytics.vw_reviews_share_quarter_sp AS
 WITH reviews AS (
     SELECT
@@ -45,10 +43,9 @@ JOIN reviews r USING (order_id)
 GROUP BY 1,2;
 
 -- Lead time P90 (days) — per quarter (SP)
-    -- RUN ME
 CREATE OR REPLACE VIEW analytics.vw_leadtime_p90_quarter_sp AS
 SELECT
-    dcal.year
+    dcal.year,
     dcal.quarter,
     percentile_cont(0.9) WITHIN GROUP (ORDER BY f.lead_time_days) AS lead_time_p90
 FROM core.fact_events f
@@ -59,7 +56,6 @@ WHERE dcu.customer_city = 'sao paulo'
 GROUP BY 1,2;
 
 -- On-time rate (% delivered ≤ estimated) — per quarter (SP)
-    -- RUN ME
 CREATE OR REPLACE VIEW analytics.vw_on_time_rate_quarter_sp AS
 SELECT
     dcal.year,
@@ -74,13 +70,12 @@ WHERE dcu.customer_city = 'sao paulo'
 GROUP BY 1,2;
 
 -- Top category share — “frozen at Q_{t−4}” (SP)
-    -- RUN ME
 CREATE OR REPLACE VIEW analytics.vw_category_share_quarter_sp AS
 SELECT
     dcal.year,
     dcal.quarter,
     dp.product_category_name AS category,
-    SUM(f.price) AS revenue_cat
+    SUM(f.price) AS revenue_cat,
     SUM(SUM(f.price)) OVER (PARTITION BY dcal.year, dcal.quarter) AS revenue_total,
     (SUM(f.price) / NULLIF(SUM(SUM(f.price)) OVER (PARTITION BY dcal.year, dcal.quarter),0)) AS share_cat
 FROM core.fact_events f
@@ -112,13 +107,13 @@ SELECT
     o.order_revenue,
     o.year, o.quarter,
     o.customer_id,
-    cab.group_id,
+    cab.group_id
 FROM order_rev o
 JOIN analytics.vw_customer_ab cab ON cab.customer_id = o.customer_id;
 
 -- Quick check
-SELECT * FROM analytics.vw_revenue_quarter_sp LIMIT 5;
-SELECT * FROM analytics.vw_reviews_share_quarter_sp LIMIT 5;
-SELECT * FROM analytics.vw_on_time_rate_quarter_sp LIMIT 5;
-SELECT * FROM analytics.vw_leadtime_p90_quarter_sp LIMIT 5;
-SELECT * FROM analytics.vw_category_share_quarter_sp LIMIT 5;
+-- SELECT * FROM analytics.vw_revenue_quarter_sp LIMIT 5;
+-- SELECT * FROM analytics.vw_reviews_share_quarter_sp LIMIT 5;
+-- SELECT * FROM analytics.vw_on_time_rate_quarter_sp LIMIT 5;
+-- SELECT * FROM analytics.vw_leadtime_p90_quarter_sp LIMIT 5;
+-- SELECT * FROM analytics.vw_category_share_quarter_sp LIMIT 5;
