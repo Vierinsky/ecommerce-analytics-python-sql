@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import hashlib
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
-from sqlalchemy.types import Text, DateTime, Numeric
+from sqlalchemy.types import Text, DateTime
 import pandas as pd
 from pathlib import Path
 import os

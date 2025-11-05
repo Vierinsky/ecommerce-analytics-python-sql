@@ -112,6 +112,7 @@ FROM order_rev o
 JOIN analytics.vw_customer_ab cab ON cab.customer_id = o.customer_id;
 
 -- Quick check
+SELECT * FROM analytics.vw_revenue_quarter_sp GROUP BY year, quarter, revenue_sp ORDER BY year ASC;
 -- SELECT * FROM analytics.vw_revenue_quarter_sp LIMIT 5;
 -- SELECT * FROM analytics.vw_reviews_share_quarter_sp LIMIT 5;
 -- SELECT * FROM analytics.vw_on_time_rate_quarter_sp LIMIT 5;
