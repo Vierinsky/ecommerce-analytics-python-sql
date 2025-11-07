@@ -20,3 +20,9 @@ SELECT
     dcu.customer_id,
     (('x' || substr(md5(dcu.customer_id), 1, 8))::bit(32)::int % 2 )::int AS group_id
 FROM core.dim_customer dcu;
+
+-- Let's review which quarters we actually have
+SELECT year, quarter, COUNT(*) AS orders_sp
+FROM analytics.vw_ab_orders_sp
+GROUP BY 1,2
+ORDER BY 1,2;
