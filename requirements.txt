@@ -3,7 +3,8 @@ numpy
 matplotlib
 scipy
 SQLAlchemy
+statsmodels
 psycopg2-binary
-alembic>=1.13,<2            # opcional, migraciones
+alembic>=1.13,<2            # Optional, for migrations
 python-dotenv
 requests
