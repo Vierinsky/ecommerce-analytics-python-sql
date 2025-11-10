@@ -85,6 +85,9 @@ JOIN core.dim_product dp ON dp.product_sk = f.product_sk
 WHERE dcu.customer_city = 'sao paulo'
 GROUP BY 1,2,3;
 
+/*
+-- Dropped A/B Test
+
 -- A/B “analysis-ready” view (order-level, SP, with group)
     -- This aggregates order revenue (sum of items) and attaches the group
     -- RUN ME
@@ -111,8 +114,16 @@ SELECT
 FROM order_rev o
 JOIN analytics.vw_customer_ab cab ON cab.customer_id = o.customer_id;
 
+-- A/B assignment & order-level analysis views
+DROP VIEW IF EXISTS analytics.vw_ab_orders_sp CASCADE;
+
+*/
+
+
+
+
 -- Quick check
-SELECT * FROM analytics.vw_revenue_quarter_sp GROUP BY year, quarter, revenue_sp ORDER BY year ASC;
+-- SELECT * FROM analytics.vw_revenue_quarter_sp GROUP BY year, quarter, revenue_sp ORDER BY year ASC;
 -- SELECT * FROM analytics.vw_revenue_quarter_sp LIMIT 5;
 -- SELECT * FROM analytics.vw_reviews_share_quarter_sp LIMIT 5;
 -- SELECT * FROM analytics.vw_on_time_rate_quarter_sp LIMIT 5;
