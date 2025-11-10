@@ -18,7 +18,7 @@ WHERE o.order_status = 'delivered'
 CREATE OR REPLACE VIEW analytics.vw_customer_ab AS
 SELECT
     dcu.customer_id,
-    (('x' || substr(md5(dcu.customer_id), 1, 8))::bit(32)::int % 2 )::int AS group_id
+    ( ( ('x' || substr(md5(dcu.customer_id), 1, 8))::bit(32)::int ) & 1 )::int AS group_id
 FROM core.dim_customer dcu;
 
 -- Let's review which quarters we actually have
