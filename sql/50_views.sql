@@ -62,12 +62,18 @@ SELECT
     dcal.quarter,
     AVG(CASE WHEN f.on_time_flag = 1 THEN 1.0
             WHEN f.on_time_flag = 0 THEN 0.0
-            ELSE NULL END) AS on_time_flag
+            ELSE NULL END) AS on_time_rate
 FROM core.fact_events f
 JOIN core.dim_calendar dcal ON dcal.calendar_sk = f.calendar_sk
 JOIN core.dim_customer dcu ON dcu.customer_sk = f.customer_sk
 WHERE dcu.customer_city = 'sao paulo'
 GROUP BY 1,2;
+
+/*
+-- Changing the old name of a column 
+ALTER TABLE analytics.vw_on_time_rate_quarter_sp
+RENAME COLUMN on_time_flag TO on_time_rate;
+*/
 
 -- Top category share — “frozen at Q_{t−4}” (SP)
 CREATE OR REPLACE VIEW analytics.vw_category_share_quarter_sp AS
