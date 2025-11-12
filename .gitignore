@@ -18,7 +18,11 @@ __pycache__/
 /reports/*.pdf
 # VSCode
 .vscode/
+# Docker
+docker-compose.yml
 # Plan con fases y pasos a seguir para proyecto
 plan.md
+# Notes
+notes_on_metabase.txt
 
 *.session.sql

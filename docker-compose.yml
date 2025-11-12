@@ -32,5 +32,26 @@ services:
     depends_on:
       - db
     profiles: ["ui"]   # <-- only starts when you ask for profile "ui"
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: ecom_metabase
+    ports:
+      - "3000:3000"
+    environment:
+      # Metabase will save its metadata in Postgres:
+      MB_DB_TYPE: postgres
+      MB_DB_HOST: db
+      MB_DB_PORT: 5432
+      MB_DB_DBNAME: metabase
+      MB_DB_USER: metabase_user
+      MB_DB_PASS: metabase_secret
+      # Encryption (IMPORTANT):
+      MB_ENCRYPTION_SECRET: ecommerce_analytics_python_sql
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles: ["bi"]
+
 volumes:
   pgdata:
