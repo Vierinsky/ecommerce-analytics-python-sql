@@ -124,7 +124,62 @@ JOIN analytics.vw_customer_ab cab ON cab.customer_id = o.customer_id;
 DROP VIEW IF EXISTS analytics.vw_ab_orders_sp CASCADE;
 
 */
+-- fact + raw dates from order + SP city
+CREATE OR REPLACE VIEW analytics.vw_fact_with_dates_sp AS
+SELECT
+  f.event_id,
+  f.order_id,
+  f.order_item_id,
+  f.price,
+  f.freight_value,
+  f.lead_time_days,
+  f.on_time_flag,
+  dcal.year,
+  dcal.quarter,
+  -- Raw Dates from staging (Olist)
+  o.order_approved_at              AS approved_at,
+  o.order_delivered_customer_date  AS delivered_at,
+  o.order_estimated_delivery_date  AS estimated_at,
+  dcu.customer_city
+FROM core.fact_events f
+JOIN core.dim_calendar  dcal ON dcal.calendar_sk  = f.calendar_sk
+JOIN core.dim_customer  dcu  ON dcu.customer_sk   = f.customer_sk
+JOIN staging.orders_raw o    ON o.order_id        = f.order_id
+WHERE dcu.customer_city = 'sao paulo';
 
+-- Late orders by category per quarter (SP)
+CREATE OR REPLACE VIEW analytics.vw_late_orders_cat_quarter_sp AS
+SELECT
+  dcal.year,
+  dcal.quarter,
+  dp.product_category_name AS category,
+  COUNT(*)                           AS n_orders,
+  AVG(CASE WHEN f.on_time_flag=1 THEN 0.0 ELSE 1.0 END) AS late_rate,
+  COUNT(*) * AVG(CASE WHEN f.on_time_flag=1 THEN 0.0 ELSE 1.0 END) AS late_orders
+FROM core.fact_events f
+JOIN core.dim_calendar dcal ON dcal.calendar_sk=f.calendar_sk
+JOIN core.dim_customer dcu  ON dcu.customer_sk=f.customer_sk
+JOIN core.dim_product  dp   ON dp.product_sk=f.product_sk
+WHERE dcu.customer_city='sao paulo'
+GROUP BY 1,2,3;
+
+-- Delta vs previous quarter
+CREATE OR REPLACE VIEW analytics.vw_delta_late_orders_cat_sp AS
+WITH base AS (
+  SELECT
+    year, quarter, category, n_orders, late_rate, late_orders,
+    LAG(n_orders)   OVER (PARTITION BY category ORDER BY year, quarter) AS n_orders_prev,
+    LAG(late_rate)  OVER (PARTITION BY category ORDER BY year, quarter) AS late_rate_prev,
+    LAG(late_orders)OVER (PARTITION BY category ORDER BY year, quarter) AS late_orders_prev
+  FROM analytics.vw_late_orders_cat_quarter_sp
+)
+SELECT
+  year, quarter, category,
+  n_orders, n_orders_prev,
+  late_rate, late_rate_prev,
+  late_orders, late_orders_prev,
+  (late_orders - COALESCE(late_orders_prev,0)) AS delta_late_orders
+FROM base;
 
 
 
