@@ -181,6 +181,28 @@ SELECT
   (late_orders - COALESCE(late_orders_prev,0)) AS delta_late_orders
 FROM base;
 
+-- single view that, per year–quarter, returns:
+    -- p50_promise_days = median of (estimated_date - approved_at)
+    -- p90_promise_days = 90th percentile of (estimated_date - approved_at)
+    -- on_time_rate = avg of on_time_flag (1/0)
+
+CREATE OR REPLACE VIEW analytics.vw_promise_vs_ontime_quarter_sp AS
+SELECT
+  dcal.year,
+  dcal.quarter,
+  PERCENTILE_CONT(0.5) WITHIN GROUP (
+    ORDER BY (o.order_estimated_delivery_date::date - o.order_approved_at::date)
+  ) AS p50_promise_days,
+  PERCENTILE_CONT(0.9) WITHIN GROUP (
+    ORDER BY (o.order_estimated_delivery_date::date - o.order_approved_at::date)
+  ) AS p90_promise_days,
+  AVG(CASE WHEN f.on_time_flag = 1 THEN 1.0 ELSE 0.0 END) AS on_time_rate
+FROM core.fact_events f
+JOIN core.dim_calendar dcal ON dcal.calendar_sk = f.calendar_sk
+JOIN core.dim_customer dcu  ON dcu.customer_sk  = f.customer_sk
+JOIN staging.orders_raw o   ON o.order_id       = f.order_id
+WHERE dcu.customer_city = 'sao paulo'
+GROUP BY 1,2;
 
 
 -- Quick check
