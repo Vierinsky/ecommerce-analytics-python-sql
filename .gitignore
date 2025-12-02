@@ -24,5 +24,9 @@ docker-compose.yml
 plan.md
 # Notes
 notes_on_metabase.txt
+# Test Notebook
+sample_into_db.ipynb
+# don't remember what this is lol
+.env.example
 
 *.session.sql
