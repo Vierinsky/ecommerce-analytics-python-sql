@@ -55,11 +55,6 @@ End-to-end analytics project using Python, PostgreSQL, and Power BI on the Olist
 ├─ notebooks/
 │  └─ EDA.ipynb                    # quick EDA / sanity checks (optional)
 │
-<!-- Review and Correct this section -->
-├─ reports/
-│  ├─ insights.md                  # Page 4 text (executive notes)
-│  └─ ab_design.md                 # (removed from scope; left here if needed for reference)
-│
 ├─ docker-compose.yml              # Postgres service
 ├─ .env                            # DB credentials (never commit secrets)
 └─ Dashboard.pbix       # Power BI report (pages 1–4)
