@@ -42,9 +42,7 @@ End-to-end analytics project using Python, PostgreSQL, and Power BI on the Olist
 │  ├─ 30_constraints_indexes.sql   # PK/FK, indexes
 │  ├─ 50_views.sql                 # KPI views (revenue, reviews, lead time P90, on-time, category share)
 │  ├─ 51_kpi_consolidated.sql      # analytics.vw_kpi_quarter_sp (quarter-level)
-│  └─ 52_drivers_views.sql         # drivers (late orders by category; delta vs previous quarter)
 │
-<!-- Review and Correct this section -->
 ├─ scripts/
 │  ├─ load_orders.py               # minimal CSV loader (sample_orders.csv → staging.orders_raw)
 │  └─ [other loaders].py           # optional loaders (order_items, reviews, sellers…)
