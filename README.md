@@ -123,7 +123,7 @@ Then populate dims/fact with your transformation SQL (or a loader script if you 
 Open E-commerce-Analytics.pbix and refresh.
 
 Slicers: City = São Paulo, Orders = delivered, Quarter by delivered_date.
-<!-- Review the title of the next section -->
+<!-- TODO: Review the title of the next section -->
 ## Analytics Dashboard
 
 ### KPIs (São Paulo city, delivered status only, quarterly)
@@ -153,7 +153,7 @@ Drivers (category contribution) — **analytics.vw_delta_late_orders_cat_sp**
 - Top-10 ≈ +113; top-3 ≈ 50% of total deterioration.
 
 ### Power BI — pages overview
-
+<!-- TODO: ADD SCREENSHOTS -->
 1. KPIs (Overview)
 Cards: revenue, reviews ≥4★ share, lead time P90, on-time rate; slicers for time/filters.
 
@@ -166,13 +166,13 @@ Note the Q3 2018 divergence (on-time down while P90 improves).
 
 4. Summary (Executive)
 
-- Executive bullets (ETA tightened → on-time down; not NULLs).
+    - Executive bullets (ETA tightened → on-time down; not NULLs).
 
-- Key numbers (QoQ deltas).
+    - Key numbers (QoQ deltas).
 
-- Drivers bar (Δ late orders by category).
+    - Drivers bar (Δ late orders by category).
 
-- Actions (retune ETA by category/city; focus plan on top contributors; monthly alerting).
+    - Actions (retune ETA by category/city; focus plan on top contributors; monthly alerting).
 
 ## What I learned (highlights)
 
