@@ -150,12 +150,18 @@ Drivers (category contribution) — **analytics.vw_delta_late_orders_cat_sp**
 1. KPIs (Overview)
 Cards: revenue, reviews ≥4★ share, lead time P90, on-time rate; slicers for time/filters.
 
+![Dashboard page 1](images/dash_page1.png)
+
 2. Trends
 Line charts over quarters (revenue & reviews share). Quick annotations for peaks/dips.
+
+![Dashboard page 2](images/dash_page2.png)
 
 3. Delivery Trends
 Line charts for On-time (pp) and Lead Time P90 (days).
 Note the Q3 2018 divergence (on-time down while P90 improves).
+
+![Dashboard page 3](images/dash_page3.png)
 
 4. Summary (Executive)
 
@@ -166,6 +172,12 @@ Note the Q3 2018 divergence (on-time down while P90 improves).
     - Drivers bar (Δ late orders by category).
 
     - Actions (retune ETA by category/city; focus plan on top contributors; monthly alerting).
+
+
+![Dashboard page 4](images/dash_page4.png)`
+
+<!-- <img src="images/dash_page4.png" width="80%"> -->
+
 
 ## What I learned (highlights)
 
