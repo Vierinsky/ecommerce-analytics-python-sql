@@ -176,9 +176,6 @@ Note the Q3 2018 divergence (on-time down while P90 improves).
 
 ![Dashboard page 4](images/dash_page4.png)`
 
-<img src="images/dash_page4.png" width="80%">
-
-
 ## What I learned (highlights)
 
 - Modeling order-item grain fact with clean dim_calendar / dim_customer / dim_product keys.
